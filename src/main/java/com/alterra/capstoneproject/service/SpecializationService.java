@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Specialization;
 import com.alterra.capstoneproject.domain.dto.SpecializationDto;
+import com.alterra.capstoneproject.repository.CourseRepository;
 import com.alterra.capstoneproject.repository.SpecializationRepository;
 
 import lombok.AllArgsConstructor;
@@ -24,10 +25,15 @@ public class SpecializationService {
     @Autowired
     private SpecializationRepository specializationRepository;
 
+    @Autowired
+    private CourseRepository courseRepository;
+
     public List<Specialization> getSpecializations() {
         try {
             log.info("Get all specialization");
             List<Specialization> specializations = specializationRepository.findAll();
+
+            if(specializations.isEmpty()) throw new Exception("SPECIALIZATION IS EMPTY");
 
             return specializations;
         } catch (Exception e) {
@@ -83,10 +89,14 @@ public class SpecializationService {
 
     public void deleteSpecialization(Long id) {
         try {
+            specializationRepository.findById(id)
+                .orElseThrow(() -> new Exception("SPECIALIZATION ID " + id + " NOT FOUND"));
+
             specializationRepository.deleteById(id);
+            courseRepository.deleteCourseBySpecialization(id);
         } catch (Exception e) {
             log.error("Delete specialization error");
-            throw new RuntimeException("SPECIALIZATION ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

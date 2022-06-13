@@ -45,15 +45,15 @@ public class Course {
 
     @ManyToOne
     @JoinColumn(name = "specialization_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonManagedReference
     private Specialization specialization;
 
     @OneToMany(mappedBy = "courseSection")
-    @JsonManagedReference
+    @JsonBackReference
     private List<Section> sections;
 
     @OneToMany(mappedBy = "courseTake")
-    @JsonManagedReference
+    @JsonBackReference
     private List<CourseTaken> courseTakens;
 
     @JsonIgnore

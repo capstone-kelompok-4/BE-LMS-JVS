@@ -40,6 +40,8 @@ public class CourseTakenService {
             log.info("Get all course taken");
             List<CourseTaken> courseTakens = courseTakenRepository.findAll();
 
+            if(courseTakens.isEmpty()) throw new Exception("COURSE TAKEN IS EMPTY");
+
             return courseTakens;
         } catch (Exception e) {
             log.error("Get all course taken error");
@@ -101,9 +103,7 @@ public class CourseTakenService {
             log.info("Get user");
             User user = userRepository.findByUsername(request.getEmail());
 
-            if(user == null) {
-                throw new Exception("USER ID " + request.getEmail() + " NOT FOUND");
-            }
+            if(user == null) throw new Exception("USER ID " + request.getEmail() + " NOT FOUND");
 
             log.info("Post course taken");
 
@@ -121,10 +121,13 @@ public class CourseTakenService {
 
     public void deleteCourseTaken(Long id) {
         try {
+            courseTakenRepository.findById(id)
+                .orElseThrow(() -> new Exception("COURSE TAKEN ID " + id + " NOT FOUND"));
+
             courseTakenRepository.deleteById(id);
         } catch (Exception e) {
             log.error("Delete course taken error");
-            throw new RuntimeException("COURSE TAKEN ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

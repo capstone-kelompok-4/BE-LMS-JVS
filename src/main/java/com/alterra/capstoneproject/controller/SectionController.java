@@ -29,9 +29,9 @@ public class SectionController {
     private SectionService sectionService;
 
     @GetMapping
-    public ResponseEntity<?> getSections() {
+    public ResponseEntity<?> getSections(@PathVariable(value = "cid") Long courseId) {
         try {
-            List<Section> sections = sectionService.getSections();
+            List<Section> sections = sectionService.getSections(courseId);
             return ResponseUtil.build("GET SECTIONS", sections, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -39,9 +39,9 @@ public class SectionController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<?> getSection(@PathVariable Long id) {
+    public ResponseEntity<?> getSection(@PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id) {
         try {
-            Section section = sectionService.getSection(id); 
+            Section section = sectionService.getSection(courseId, id); 
             return ResponseUtil.build("GET SECTION ID " + id, section, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -60,7 +60,9 @@ public class SectionController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<?> updateSection(@PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id, @RequestBody SectionDto request) {
+    public ResponseEntity<?> updateSection(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id, @RequestBody SectionDto request) 
+    {
         try {
             request.setCourseId(courseId);
             Section section = sectionService.updateSection(id, request); 
@@ -71,9 +73,9 @@ public class SectionController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteSection(@PathVariable Long id) {
+    public ResponseEntity<?> deleteSection( @PathVariable(value = "cid") Long courseId, @PathVariable Long id) {
         try {
-            sectionService.deleteSection(id);
+            sectionService.deleteSection(courseId, id);
             return ResponseUtil.build("SECTION ID " + id + " DELETED", null, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);

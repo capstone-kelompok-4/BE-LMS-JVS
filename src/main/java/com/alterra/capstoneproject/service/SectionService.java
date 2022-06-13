@@ -11,6 +11,7 @@ import com.alterra.capstoneproject.domain.dao.Course;
 import com.alterra.capstoneproject.domain.dao.Section;
 import com.alterra.capstoneproject.domain.dto.SectionDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
+import com.alterra.capstoneproject.repository.MaterialRepository;
 import com.alterra.capstoneproject.repository.SectionRepository;
 
 import lombok.AllArgsConstructor;
@@ -29,10 +30,19 @@ public class SectionService {
     @Autowired
     private CourseRepository courseRepository;
 
-    public List<Section> getSections() {
+    @Autowired
+    private MaterialRepository materialRepository;
+
+    public List<Section> getSections(Long courseId) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
             log.info("Get all sections");
-            List<Section> sections = sectionRepository.findAll();
+            List<Section> sections = sectionRepository.searchAll(courseId);
+
+            if(sections.isEmpty()) throw new Exception("SECTION IS EMPTY");
 
             return sections;
         } catch (Exception e) {
@@ -41,11 +51,15 @@ public class SectionService {
         }
     }
 
-    public Section getSection(Long id) {
+    public Section getSection(Long courseId, Long id) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
             log.info("Get section by id");
-            Section section = sectionRepository.findById(id)
-                .orElseThrow(() -> new Exception("SECTION ID " + id + " NOT FOUND"));
+            Section section = sectionRepository.searchById(id, courseId)
+                .orElseThrow(() -> new Exception("SECTION ID " + id + " WITH COURSE ID " + courseId +" NOT FOUND"));
 
             return section;
         } catch (Exception e) {
@@ -69,20 +83,20 @@ public class SectionService {
             sectionRepository.save(section);
             return section;
         } catch (Exception e) {
-            log.error("Post material error");
+            log.error("Post section error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
     public Section updateSection(Long id, SectionDto request) {
         try {
-            log.info("Get section by id");
-            Section section = sectionRepository.findById(id)
-                .orElseThrow(() -> new Exception("SECTION ID " + id + " NOT FOUND"));
-
             log.info("Get course");
             Course course = courseRepository.searchById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
+
+            log.info("Get section by id");
+            Section section = sectionRepository.searchById(id, request.getCourseId())
+                .orElseThrow(() -> new Exception("SECTION ID " + id + " WITH COURSE ID " + request.getCourseId() +" NOT FOUND"));
 
             log.info("Post section");
 
@@ -92,17 +106,26 @@ public class SectionService {
             sectionRepository.save(section);
             return section;
         } catch (Exception e) {
-            log.error("Post material error");
+            log.error("Post section error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    public void deleteSection(Long id) {
+    public void deleteSection(Long courseId, Long id) {
         try {
+            log.info("Get course id {}", courseId);
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
+            log.info("Get section by id");
+            sectionRepository.searchById(id, courseId)
+                .orElseThrow(() -> new Exception("SECTION ID " + id + " WITH COURSE ID " + courseId +" NOT FOUND"));
+
             sectionRepository.deleteById(id);
+            materialRepository.deleteMaterialBySection(id);
         } catch (Exception e) {
             log.error("Delete section error");
-            throw new RuntimeException("SECTION ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

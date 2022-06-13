@@ -23,15 +23,15 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/courses/{cid}/sections/{cis}/materials")
+@RequestMapping(value = "/api/courses/{cid}/sections/{sid}/materials")
 public class MaterialController {
     @Autowired
     private MaterialService materialService;
 
     @GetMapping
-    public ResponseEntity<?> getMaterials() {
+    public ResponseEntity<?> getMaterials(@PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId) {
         try {
-            List<Material> materials = materialService.getMaterials();
+            List<Material> materials = materialService.getMaterials(courseId, sectionId);
             return ResponseUtil.build("GET MATERIALS", materials, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -39,9 +39,11 @@ public class MaterialController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<?> getMaterial(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<?> getMaterial(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, @PathVariable(value = "id") Long id) 
+    {
         try {
-            Material material = materialService.getMaterial(id); 
+            Material material = materialService.getMaterial(courseId, sectionId, id); 
             return ResponseUtil.build("GET MATERIAL ID " + id, material, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -49,8 +51,11 @@ public class MaterialController {
     }
 
     @PostMapping
-    public ResponseEntity<?> postMaterial(@PathVariable(value = "cis") Long sectionId, @RequestBody MaterialDto request) {
+    public ResponseEntity<?> postMaterial(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, @RequestBody MaterialDto request) 
+    {
         try {
+            request.setCourseId(courseId);
             request.setSectionId(sectionId);
             Material material = materialService.postMaterial(request); 
             return ResponseUtil.build("MATERIAL CREATED", material, HttpStatus.OK);
@@ -60,8 +65,12 @@ public class MaterialController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<?> updateMaterial(@PathVariable(value = "cis") Long sectionId, @PathVariable(value = "id") Long id, @RequestBody MaterialDto request) {
+    public ResponseEntity<?> updateMaterial(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, 
+        @PathVariable(value = "id") Long id, @RequestBody MaterialDto request) 
+    {
         try {
+            request.setCourseId(courseId);
             request.setSectionId(sectionId);
             Material material = materialService.updateMaterial(id, request); 
             return ResponseUtil.build("MATERIAL ID " + id + " UPDATED", material, HttpStatus.OK);
@@ -71,9 +80,11 @@ public class MaterialController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteMaterial(@PathVariable Long id) {
+    public ResponseEntity<?> deleteMaterial(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, @PathVariable(value = "id") Long id) 
+    {
         try {
-            materialService.deleteMaterial(id);
+            materialService.deleteMaterial(courseId, sectionId, id);
             return ResponseUtil.build("MATERIAL ID " + id + " DELETED", null, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);

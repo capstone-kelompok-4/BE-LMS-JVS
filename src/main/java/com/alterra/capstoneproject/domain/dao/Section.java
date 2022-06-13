@@ -44,12 +44,12 @@ public class Section {
     private String name;
 
     @OneToMany(mappedBy = "section")
-    @JsonManagedReference
+    @JsonBackReference
     private List<Material> materials;
 
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonManagedReference
     private Course courseSection;
 
     @JsonIgnore

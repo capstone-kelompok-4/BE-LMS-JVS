@@ -10,8 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -41,7 +41,7 @@ public class Specialization {
     private String name;
 
     @OneToMany(mappedBy = "specialization")
-    @JsonManagedReference
+    @JsonBackReference
     private List<Course> courses;
 
     @JsonIgnore

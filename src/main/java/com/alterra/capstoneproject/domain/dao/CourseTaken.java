@@ -14,6 +14,7 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -50,7 +51,7 @@ public class CourseTaken {
 
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonManagedReference
     private Course courseTake;
 
     @JsonIgnore

@@ -17,12 +17,12 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final AuthService authService;
 
-    @PostMapping("/register")
+    @PostMapping("/api/auth/signup")
     public ResponseEntity<?> register (@RequestBody UsernamePassword req) {
         return ResponseEntity.ok(authService.register(req));
     }
 
-    @PostMapping("/login")
+    @PostMapping("/api/auth/signin")
     public ResponseEntity<?> generateToken(@RequestBody UsernamePassword req) {
         TokenResponse token = authService.generateToken(req);
 

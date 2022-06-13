@@ -17,5 +17,7 @@ public class MaterialDto {
     @Column(nullable = false)
     private String url;
     @Column(nullable = false)
+    private Long courseId;
+    @Column(nullable = false)
     private Long sectionId;
 }

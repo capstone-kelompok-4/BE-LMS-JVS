@@ -11,6 +11,8 @@ import com.alterra.capstoneproject.domain.dao.Course;
 import com.alterra.capstoneproject.domain.dao.Specialization;
 import com.alterra.capstoneproject.domain.dto.CourseDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
+import com.alterra.capstoneproject.repository.CourseTakenRepository;
+import com.alterra.capstoneproject.repository.SectionRepository;
 import com.alterra.capstoneproject.repository.SpecializationRepository;
 
 import lombok.AllArgsConstructor;
@@ -28,11 +30,19 @@ public class CourseService {
 
     @Autowired
     private SpecializationRepository specializationRepository;
+
+    @Autowired
+    private CourseTakenRepository courseTakenRepository;
+
+    @Autowired
+    private SectionRepository sectionRepository;
     
     public List<Course> getCourses() {
         try {
             log.info("Get all courses");
             List<Course> courses = courseRepository.findAll();
+
+            if(courses.isEmpty()) throw new Exception("COURSE IS EMPTY");
 
             return courses;
         } catch (Exception e) {
@@ -99,10 +109,15 @@ public class CourseService {
 
     public void deleteCourse(Long id) {
         try {
+            courseRepository.findById(id)
+                .orElseThrow(() -> new Exception("COURSE ID " + id + " NOT FOUND"));
+
             courseRepository.deleteById(id);
+            courseTakenRepository.deleteCourseTakenByCourse(id);
+            sectionRepository.deleteSectionByCourse(id);
         } catch (Exception e) {
             log.error("Delete course error");
-            throw new RuntimeException("COURSE ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

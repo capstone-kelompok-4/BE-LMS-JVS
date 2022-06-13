@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.alterra.capstoneproject.domain.dao.Material;
 import com.alterra.capstoneproject.domain.dao.Section;
 import com.alterra.capstoneproject.domain.dto.MaterialDto;
+import com.alterra.capstoneproject.repository.CourseRepository;
 import com.alterra.capstoneproject.repository.MaterialRepository;
 import com.alterra.capstoneproject.repository.SectionRepository;
 
@@ -29,10 +30,23 @@ public class MaterialService {
     @Autowired
     private SectionRepository sectionRepository;
 
-    public List<Material> getMaterials() {
+    @Autowired
+    private CourseRepository courseRepository;
+
+    public List<Material> getMaterials(Long courseId, Long sectionId) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
+            log.info("Get section");
+            sectionRepository.searchById(sectionId, courseId)
+                .orElseThrow(() -> new Exception("SECTION ID " + sectionId + " WITH COURSE ID " + courseId +" NOT FOUND"));
+
             log.info("Get all materials");
-            List<Material> materials = materialRepository.findAll();
+            List<Material> materials = materialRepository.searchAll(sectionId);
+
+            if(materials.isEmpty()) throw new Exception("MATERIAL IS EMPTY");
 
             return materials;
         } catch (Exception e) {
@@ -41,11 +55,21 @@ public class MaterialService {
         }
     }
 
-    public Material getMaterial(Long id) {
+    public Material getMaterial(Long courseId, Long sectionId, Long id) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
+            log.info("Get section");
+            sectionRepository.searchById(sectionId, courseId)
+                .orElseThrow(() -> new Exception("SECTION ID " + sectionId + " WITH COURSE ID " + courseId +" NOT FOUND"));
+
             log.info("Get material by id");
-            Material material = materialRepository.findById(id)
-                .orElseThrow(() -> new Exception("MATERIAL ID " + id + " NOT FOUND"));
+            Material material = materialRepository.searchById(id, sectionId)
+                .orElseThrow(() -> 
+                new Exception("MATERIAL ID " + id + " WITH COURSE ID " + courseId + " AND SECTION ID " + sectionId + " NOT FOUND")
+            );
 
             return material;
         } catch (Exception e) {
@@ -56,9 +80,15 @@ public class MaterialService {
 
     public Material postMaterial(MaterialDto request) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(request.getCourseId())
+                .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
+
             log.info("Get section");
-            Section section = sectionRepository.searchById(request.getSectionId())
-                .orElseThrow(() -> new Exception("SECTION ID " + request.getSectionId() + " NOT FOUND"));
+            Section section = sectionRepository.searchById(request.getSectionId(), request.getCourseId())
+                .orElseThrow(() -> 
+                new Exception("SECTION ID " + request.getSectionId() + " WITH COURSE ID " + request.getCourseId() +" NOT FOUND")
+            );
 
             log.info("Post material");
             Material material = new Material();
@@ -78,13 +108,22 @@ public class MaterialService {
 
     public Material updateMaterial(Long id, MaterialDto request) {
         try {
-            log.info("Get material by id");
-            Material material = materialRepository.findById(id)
-                .orElseThrow(() -> new Exception("MATERIAL ID " + id + " NOT FOUND"));
+            log.info("Get course");
+            courseRepository.searchById(request.getCourseId())
+                .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get section");
-            Section section = sectionRepository.searchById(request.getSectionId())
-                .orElseThrow(() -> new Exception("SECTION ID " + request.getSectionId() + " NOT FOUND"));
+            Section section = sectionRepository.searchById(request.getSectionId(), request.getCourseId())
+                .orElseThrow(() ->                 
+                new Exception("SECTION ID " + request.getSectionId() + " WITH COURSE ID " + request.getCourseId() +" NOT FOUND")
+            );
+
+            log.info("Get material by id");
+            Material material = materialRepository.searchById(id, request.getSectionId())
+                .orElseThrow(() -> 
+                new Exception("MATERIAL ID " + id + " WITH COURSE ID " + request.getCourseId() + 
+                " AND SECTION ID " + request.getSectionId() +" NOT FOUND")
+            );
 
             log.info("Update material");
 
@@ -101,12 +140,26 @@ public class MaterialService {
         }
     }
 
-    public void deleteMaterial(Long id) {
+    public void deleteMaterial(Long courseId, Long sectionId, Long id) {
         try {
+            log.info("Get course");
+            courseRepository.searchById(courseId)
+                .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
+
+            log.info("Get section");
+            sectionRepository.searchById(sectionId, courseId)
+                .orElseThrow(() -> new Exception("SECTION ID " + sectionId + " WITH COURSE ID " + courseId +" NOT FOUND"));
+
+            log.info("Get material by id");
+            materialRepository.searchById(id, sectionId)
+                .orElseThrow(() -> 
+                new Exception("MATERIAL ID " + id + " WITH COURSE ID " + courseId + " AND SECTION ID " + sectionId + " NOT FOUND")
+            );
+
             materialRepository.deleteById(id);
         } catch (Exception e) {
             log.error("Delete material error");
-            throw new RuntimeException("MATERIAL ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }
