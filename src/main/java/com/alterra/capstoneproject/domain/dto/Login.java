@@ -5,7 +5,7 @@ import javax.persistence.Column;
 import lombok.Data;
 
 @Data
-public class UsernamePassword {
+public class Login {
     @Column(nullable = false)
     private String username;
     @Column(nullable = false)

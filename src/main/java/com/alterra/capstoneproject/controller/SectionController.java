@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +50,7 @@ public class SectionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postSection(@PathVariable(value = "cid") Long courseId, @RequestBody SectionDto request) {
         try {
             request.setCourseId(courseId);
@@ -60,6 +62,7 @@ public class SectionController {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateSection(
         @PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id, @RequestBody SectionDto request) 
     {
@@ -73,7 +76,8 @@ public class SectionController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteSection( @PathVariable(value = "cid") Long courseId, @PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSection(@PathVariable(value = "cid") Long courseId, @PathVariable Long id) {
         try {
             sectionService.deleteSection(courseId, id);
             return ResponseUtil.build("SECTION ID " + id + " DELETED", null, HttpStatus.OK);

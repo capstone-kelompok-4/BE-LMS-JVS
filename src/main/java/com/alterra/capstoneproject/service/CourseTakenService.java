@@ -69,11 +69,8 @@ public class CourseTakenService {
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get user");
-            User user = userRepository.findByUsername(request.getEmail());
-
-            if(user == null) {
-                throw new Exception("USER ID " + request.getEmail() + " NOT FOUND");
-            }
+            User user = userRepository.findByUsername(request.getEmail())
+                .orElseThrow(() -> new Exception("USER WITH EMAIL " + request.getEmail() + " NOT FOUND"));
 
             log.info("Post course taken");
             CourseTaken courseTaken = new CourseTaken();
@@ -101,7 +98,8 @@ public class CourseTakenService {
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get user");
-            User user = userRepository.findByUsername(request.getEmail());
+            User user = userRepository.findByUsername(request.getEmail())
+                .orElseThrow(() -> new Exception("USER WITH EMAIL " + request.getEmail() + " NOT FOUND"));
 
             if(user == null) throw new Exception("USER ID " + request.getEmail() + " NOT FOUND");
 

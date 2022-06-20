@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alterra.capstoneproject.domain.dto.TokenResponse;
-import com.alterra.capstoneproject.domain.dto.UsernamePassword;
+import com.alterra.capstoneproject.domain.dto.Login;
+import com.alterra.capstoneproject.domain.dto.Register;
 import com.alterra.capstoneproject.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,12 @@ public class UserController {
     private final AuthService authService;
 
     @PostMapping("/api/auth/signup")
-    public ResponseEntity<?> register (@RequestBody UsernamePassword req) {
+    public ResponseEntity<?> register (@RequestBody Register req) {
         return ResponseEntity.ok(authService.register(req));
     }
 
     @PostMapping("/api/auth/signin")
-    public ResponseEntity<?> generateToken(@RequestBody UsernamePassword req) {
+    public ResponseEntity<?> generateToken(@RequestBody Login req) {
         TokenResponse token = authService.generateToken(req);
 
         HttpHeaders responseHeaders = new HttpHeaders();

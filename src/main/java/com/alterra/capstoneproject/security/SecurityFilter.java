@@ -10,11 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.alterra.capstoneproject.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class SecurityFilter extends OncePerRequestFilter {
     private static final String JWT_HEADER = "Authorization";
     private static final String JWT_TOKEN_PREFIX = "Bearer";
 
-    private final UserDetailsService userDetailsService;
+    private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     
     @Override
@@ -40,7 +41,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         
                 log.info("Username: {}", username);
         
-                UserDetails user = userDetailsService.loadUserByUsername(username);
+                UserDetails user = userService.loadUserByUsername(username);
         
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     user, user.getPassword(), user.getAuthorities()

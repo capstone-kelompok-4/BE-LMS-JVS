@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class CourseTakenController {
     private CourseTakenService courseTakenService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCourseTakens() {
         try {
             List<CourseTaken> courseTakens = courseTakenService.getCourseTakens();
@@ -39,6 +41,7 @@ public class CourseTakenController {
     }
 
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCourseTaken(@PathVariable Long id) {
         try {
             CourseTaken courseTaken = courseTakenService.getCourseTaken(id); 
@@ -49,6 +52,7 @@ public class CourseTakenController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postCourseTaken(@RequestBody CourseTakenDto request) {
         try {
             CourseTaken courseTaken = courseTakenService.postCourseTaken(request); 
@@ -59,6 +63,7 @@ public class CourseTakenController {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateCourseTaken(@PathVariable Long id, @RequestBody CourseTakenDto request) {
         try {
             CourseTaken courseTaken = courseTakenService.updateCourseTaken(id, request); 
@@ -69,6 +74,7 @@ public class CourseTakenController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteCourseTaken(@PathVariable Long id) {
         try {
             courseTakenService.deleteCourseTaken(id);

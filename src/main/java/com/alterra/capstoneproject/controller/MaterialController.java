@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +52,7 @@ public class MaterialController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postMaterial(
         @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, @RequestBody MaterialDto request) 
     {
@@ -65,6 +67,7 @@ public class MaterialController {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateMaterial(
         @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, 
         @PathVariable(value = "id") Long id, @RequestBody MaterialDto request) 
@@ -80,6 +83,7 @@ public class MaterialController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteMaterial(
         @PathVariable(value = "cid") Long courseId, @PathVariable(value = "sid") Long sectionId, @PathVariable(value = "id") Long id) 
     {
