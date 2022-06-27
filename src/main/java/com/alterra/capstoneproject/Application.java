@@ -10,6 +10,9 @@ import com.alterra.capstoneproject.domain.dao.Role;
 import com.alterra.capstoneproject.domain.dao.RoleEnum;
 import com.alterra.capstoneproject.repository.RoleRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootApplication
 public class Application {
 	@Autowired
@@ -22,13 +25,21 @@ public class Application {
 	@Bean
 	InitializingBean sendDatabase() {
     return () -> {
-		Role roleAdmin = new Role();
-		roleAdmin.setName(RoleEnum.ROLE_ADMIN);
-        roleRepository.save(roleAdmin);
+		Role checkAdmin = roleRepository.findByName(RoleEnum.ROLE_ADMIN).orElse(null);
+		if(checkAdmin == null) {
+			log.info("Set role admin");
+			Role roleAdmin = new Role();
+			roleAdmin.setName(RoleEnum.ROLE_ADMIN);
+			roleRepository.save(roleAdmin);
+		}			
 
-		Role roleUser = new Role();
-		roleUser.setName(RoleEnum.ROLE_USER);
-        roleRepository.save(roleUser);
+		Role checkUser = roleRepository.findByName(RoleEnum.ROLE_USER).orElse(null);
+		if(checkUser == null) {
+			log.info("Set role user");
+			Role roleUser = new Role();
+			roleUser.setName(RoleEnum.ROLE_USER);
+        	roleRepository.save(roleUser);
+		}
       };
    }
 

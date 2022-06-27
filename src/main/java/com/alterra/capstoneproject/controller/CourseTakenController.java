@@ -1,5 +1,6 @@
 package com.alterra.capstoneproject.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,6 @@ public class CourseTakenController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postCourseTaken(@RequestBody CourseTakenDto request) {
         try {
             CourseTaken courseTaken = courseTakenService.postCourseTaken(request); 
@@ -79,6 +79,26 @@ public class CourseTakenController {
         try {
             courseTakenService.deleteCourseTaken(id);
             return ResponseUtil.build("COURSE TAKEN ID " + id + " DELETED", null, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/history")
+    public ResponseEntity<?> getCourseTakenByUser(Principal principal) {
+        try {
+            List<CourseTaken> courseTakens = courseTakenService.getCourseTakenByUser(principal.getName());
+            return ResponseUtil.build("GET COURSE TAKENS BY USER", courseTakens, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/courses/{id}")
+    public ResponseEntity<?> getCourseTakenByCourse(@PathVariable Long id) {
+        try {
+            List<CourseTaken> courseTakens = courseTakenService.getCourseTakenByCourse(id);
+            return ResponseUtil.build("GET COURSE TAKENS BY COURSE", courseTakens, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

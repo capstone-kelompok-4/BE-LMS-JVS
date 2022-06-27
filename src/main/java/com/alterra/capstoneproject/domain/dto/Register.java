@@ -2,17 +2,18 @@ package com.alterra.capstoneproject.domain.dto;
 
 import java.util.List;
 
-import javax.persistence.Column;
-
 import com.alterra.capstoneproject.domain.dao.RoleEnum;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import lombok.Data;
 
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Register {
-    @Column(nullable = false)
-    private String username;
-    @Column(nullable = false)
+    private String name;
+    private String email;
     private String password;
+    private Long specializationId;
     private List<RoleEnum> roles;
 }

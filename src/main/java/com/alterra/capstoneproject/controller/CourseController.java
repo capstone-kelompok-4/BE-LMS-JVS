@@ -1,5 +1,6 @@
 package com.alterra.capstoneproject.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alterra.capstoneproject.domain.dao.Course;
@@ -77,6 +79,26 @@ public class CourseController {
         try {
             courseService.deleteCourse(id);
             return ResponseUtil.build("COURSE ID " + id + " DELETED", null, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/recommendations")
+    public ResponseEntity<?> getCourseByUserSpec(Principal principal) {
+        try {
+            List<Course> courses = courseService.getCourseByUserSpec(principal.getName());
+            return ResponseUtil.build("GET COURSES BY USER SPECIALIZATION", courses, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/search")
+    public ResponseEntity<?> getCourseByName(@RequestParam(value = "q") String name) {
+        try {
+            List<Course> courses = courseService.getCourseByName(name);
+            return ResponseUtil.build("GET COURSES BY COURSE NAME", courses, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -69,8 +69,7 @@ public class CourseTakenService {
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get user");
-            User user = userRepository.findByUsername(request.getEmail())
-                .orElseThrow(() -> new Exception("USER WITH EMAIL " + request.getEmail() + " NOT FOUND"));
+            User user = userRepository.findUsername(request.getEmail());
 
             log.info("Post course taken");
             CourseTaken courseTaken = new CourseTaken();
@@ -82,7 +81,7 @@ public class CourseTakenService {
             courseTakenRepository.save(courseTaken);
             return courseTaken;
         } catch (Exception e) {
-            log.error("Post material error");
+            log.error("Post course taken error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -99,20 +98,17 @@ public class CourseTakenService {
 
             log.info("Get user");
             User user = userRepository.findByUsername(request.getEmail())
-                .orElseThrow(() -> new Exception("USER WITH EMAIL " + request.getEmail() + " NOT FOUND"));
-
-            if(user == null) throw new Exception("USER ID " + request.getEmail() + " NOT FOUND");
+                .orElseThrow(() -> new Exception("EMAIL " + request.getEmail() + " NOT FOUND"));
 
             log.info("Post course taken");
 
             courseTaken.setCourseTake(course);
             courseTaken.setUser(user);
-            courseTaken.setTakenAt(LocalDateTime.now());
 
             courseTakenRepository.save(courseTaken);
             return courseTaken;
         } catch (Exception e) {
-            log.error("Post material error");
+            log.error("Post course taken error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -125,6 +121,37 @@ public class CourseTakenService {
             courseTakenRepository.deleteById(id);
         } catch (Exception e) {
             log.error("Delete course taken error");
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<CourseTaken> getCourseTakenByUser(String email) {
+        try {
+            log.info("Get user");
+            User user = userRepository.findUsername(email);
+
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByUser(user.getId());
+                 
+            if(courseTakens.isEmpty()) throw new Exception("COURSE TAKEN BY USER " + user.getUsername() + " IS EMPTY");
+
+            return courseTakens;
+        } catch (Exception e) {
+            log.error("Get course taken by user error");
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<CourseTaken> getCourseTakenByCourse(Long id) {
+        try {
+            log.info("Get course by id");
+            courseRepository.findById(id)
+                .orElseThrow(() -> new Exception("COURSE ID " + id + " NOT FOUND"));
+
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourse(id);
+
+            return courseTakens;
+        } catch (Exception e) {
+            log.error("Get course taken by course error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }

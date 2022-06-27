@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Course;
 import com.alterra.capstoneproject.domain.dao.Specialization;
+import com.alterra.capstoneproject.domain.dao.User;
 import com.alterra.capstoneproject.domain.dto.CourseDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
 import com.alterra.capstoneproject.repository.CourseTakenRepository;
 import com.alterra.capstoneproject.repository.SectionRepository;
 import com.alterra.capstoneproject.repository.SpecializationRepository;
+import com.alterra.capstoneproject.repository.UserRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -36,6 +38,9 @@ public class CourseService {
 
     @Autowired
     private SectionRepository sectionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
     
     public List<Course> getCourses() {
         try {
@@ -74,7 +79,8 @@ public class CourseService {
             Course course = new Course();
 
             course.setName(request.getName());
-            course.setSpecialization(spec);
+            course.setDescription(request.getDescription());
+            course.setCourseSpecialization(spec);
 
             courseRepository.save(course);
             return course;
@@ -97,7 +103,7 @@ public class CourseService {
             log.info("Update course");
 
             course.setName(request.getName());
-            course.setSpecialization(spec);
+            course.setCourseSpecialization(spec);
 
             courseRepository.save(course);
             return course;
@@ -117,6 +123,39 @@ public class CourseService {
             sectionRepository.deleteSectionByCourse(id);
         } catch (Exception e) {
             log.error("Delete course error");
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<Course> getCourseByUserSpec(String email) {
+        try {
+            log.info("Get user");
+            User user = userRepository.findUsername(email);
+
+            if(user.getUserSpecialization() == null) throw new Exception("USER DO NOT HAVE SPECIALIZATION");
+            
+            log.info("Get courses by user specialization");
+            List<Course> courses = courseRepository.searchByUserSpec(user.getUserSpecialization().getId());
+
+            if(courses.isEmpty()) throw new Exception("COURSE WITH SPECIALIZATION " + user.getUserSpecialization().getName() + " IS EMPTY");
+
+            return courses;
+        } catch (Exception e) {
+            log.error("Get course by user specialization error");
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public List<Course> getCourseByName(String name) {
+        try {
+            log.info("Get course by name {}", name);
+            List<Course> courses = courseRepository.findByName(name);
+
+            if(courses.isEmpty()) throw new Exception("COURSE IS EMPTY");
+
+            return courses;
+        } catch (Exception e) {
+            log.error("Get course by name error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }

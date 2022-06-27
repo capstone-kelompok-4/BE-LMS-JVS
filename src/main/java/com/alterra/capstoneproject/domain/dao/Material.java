@@ -9,8 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -25,11 +25,11 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "material")
+@Table(name = "materials")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@SQLDelete(sql = "UPDATE material SET deleted = true WHERE id=?")
+@SQLDelete(sql = "UPDATE materials SET deleted = true WHERE id=?")
 @Where(clause = "deleted = false")
 public class Material {
     @Id
@@ -47,7 +47,7 @@ public class Material {
 
     @ManyToOne
     @JoinColumn(name = "section_id", referencedColumnName = "id")
-    @JsonManagedReference
+    @JsonBackReference
     private Section section;
 
     @JsonIgnore

@@ -29,11 +29,11 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "course")
+@Table(name = "courses")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@SQLDelete(sql = "UPDATE course SET deleted = true WHERE id=?")
+@SQLDelete(sql = "UPDATE courses SET deleted = true WHERE id=?")
 @Where(clause = "deleted = false")
 public class Course {
     @Id
@@ -43,13 +43,19 @@ public class Course {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "rate")
+    private Double rate;
+
     @ManyToOne
-    @JoinColumn(name = "specialization_id", referencedColumnName = "id")
+    @JoinColumn(name = "specialization_id", referencedColumnName = "id", nullable = false)
     @JsonManagedReference
-    private Specialization specialization;
+    private Specialization courseSpecialization;
 
     @OneToMany(mappedBy = "courseSection")
-    @JsonBackReference
+    @JsonManagedReference
     private List<Section> sections;
 
     @OneToMany(mappedBy = "courseTake")

@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Role;
 import com.alterra.capstoneproject.domain.dao.RoleEnum;
+import com.alterra.capstoneproject.domain.dao.Specialization;
 import com.alterra.capstoneproject.domain.dao.User;
 import com.alterra.capstoneproject.domain.dto.TokenResponse;
 import com.alterra.capstoneproject.domain.dto.Login;
 import com.alterra.capstoneproject.domain.dto.Register;
 import com.alterra.capstoneproject.repository.RoleRepository;
+import com.alterra.capstoneproject.repository.SpecializationRepository;
 import com.alterra.capstoneproject.repository.UserRepository;
 import com.alterra.capstoneproject.security.JwtTokenProvider;
 
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final SpecializationRepository specializationRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -36,12 +39,13 @@ public class AuthService {
     public Register register(Register req) {
         try {
             log.info("Search username in database");
-            if (userRepository.findUsername(req.getUsername()) != null) {
-                throw new Exception("USER WITH USERNAME " + req.getUsername() + " IS ALREADY EXIST");
+            if (userRepository.findUsername(req.getEmail()) != null) {
+                throw new Exception("USER WITH EMAIL " + req.getEmail() + " IS ALREADY EXIST");
             }
             
             User user = new User();
-            user.setUsername(req.getUsername());
+            user.setName(req.getName());
+            user.setUsername(req.getEmail());
             user.setPassword(passwordEncoder.encode(req.getPassword()));
 
             Set<Role> roles = new HashSet<>();
@@ -59,10 +63,16 @@ public class AuthService {
             }
             user.setRoles(roles);
 
+            if(req.getSpecializationId() != null) {
+                Specialization specialization = specializationRepository.findById(req.getSpecializationId())
+                    .orElseThrow(() -> new RuntimeException("SPECIALIZATION NOT FOUND"));
+                user.setUserSpecialization(specialization);
+            }
+
             userRepository.save(user);
 
             req.setPassword("*".repeat(req.getPassword().length()));
-            log.info("User {} saved", req.getUsername());
+            log.info("User {} saved", req.getEmail());
             return req;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -73,7 +83,7 @@ public class AuthService {
     public TokenResponse generateToken(Login req) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+                new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);

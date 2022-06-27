@@ -11,7 +11,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -29,11 +28,11 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "course_taken")
+@Table(name = "course_takens")
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@SQLDelete(sql = "UPDATE course_taken SET deleted = true WHERE id=?")
+@SQLDelete(sql = "UPDATE course_takens SET deleted = true WHERE id=?")
 @Where(clause = "deleted = false")
 public class CourseTaken {
     @Id
@@ -45,12 +44,12 @@ public class CourseTaken {
     private LocalDateTime takenAt;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @JsonManagedReference
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @JoinColumn(name = "course_id", referencedColumnName = "id", nullable = false)
     @JsonManagedReference
     private Course courseTake;
 

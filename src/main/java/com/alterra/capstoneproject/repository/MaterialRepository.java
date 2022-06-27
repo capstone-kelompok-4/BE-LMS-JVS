@@ -12,13 +12,13 @@ import com.alterra.capstoneproject.domain.dao.Material;
 
 @Repository
 public interface MaterialRepository extends JpaRepository<Material, Long> {
-    @Query(value = "SELECT * FROM material m WHERE m.deleted = false AND m.section_id = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM materials m WHERE m.deleted = false AND m.section_id = ?", nativeQuery = true)
     List<Material> searchAll(Long sectionId);
     
-    @Query(value = "SELECT * FROM material m WHERE m.deleted = false AND m.id = ? AND m.section_id = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM materials m WHERE m.deleted = false AND m.id = ? AND m.section_id = ?", nativeQuery = true)
     Optional<Material> searchById(Long id, Long sectionId);
     
     @Modifying
-    @Query(value = "UPDATE material SET deleted = true WHERE section_id = ?", nativeQuery = true)
+    @Query(value = "UPDATE materials SET deleted = true WHERE section_id = ?", nativeQuery = true)
     void deleteMaterialBySection(Long id);
 }

@@ -12,13 +12,13 @@ import com.alterra.capstoneproject.domain.dao.Section;
 
 @Repository
 public interface SectionRepository extends JpaRepository<Section, Long> {
-    @Query(value = "SELECT * FROM section s WHERE s.deleted = false AND s.course_id = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM sections s WHERE s.deleted = false AND s.course_id = ?", nativeQuery = true)
     List<Section> searchAll(Long courseId);
     
-    @Query(value = "SELECT * FROM section s WHERE s.deleted = false AND s.id = ? AND s.course_id = ?", nativeQuery = true)
+    @Query(value = "SELECT * FROM sections s WHERE s.deleted = false AND s.id = ? AND s.course_id = ?", nativeQuery = true)
     Optional<Section> searchById(Long id, Long courseId);
 
     @Modifying
-    @Query(value = "UPDATE section SET deleted = true WHERE course_id = ?", nativeQuery = true)
+    @Query(value = "UPDATE sections SET deleted = true WHERE course_id = ?", nativeQuery = true)
     void deleteSectionByCourse(Long id);
 }
