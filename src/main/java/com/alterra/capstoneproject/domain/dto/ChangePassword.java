@@ -7,8 +7,8 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class SectionDto {
-    private Integer number;
-    private String name;
-    private Long courseId;
+public class ChangePassword {
+    private String email;
+    private String currentPassword;
+    private String newPassword;
 }

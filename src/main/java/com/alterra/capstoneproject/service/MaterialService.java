@@ -7,11 +7,15 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.alterra.capstoneproject.domain.dao.CourseTaken;
 import com.alterra.capstoneproject.domain.dao.Material;
+import com.alterra.capstoneproject.domain.dao.Report;
 import com.alterra.capstoneproject.domain.dao.Section;
 import com.alterra.capstoneproject.domain.dto.MaterialDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
+import com.alterra.capstoneproject.repository.CourseTakenRepository;
 import com.alterra.capstoneproject.repository.MaterialRepository;
+import com.alterra.capstoneproject.repository.ReportRepository;
 import com.alterra.capstoneproject.repository.SectionRepository;
 
 import lombok.AllArgsConstructor;
@@ -33,10 +37,16 @@ public class MaterialService {
     @Autowired
     private CourseRepository courseRepository;
 
+    @Autowired
+    private CourseTakenRepository courseTakenRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
+
     public List<Material> getMaterials(Long courseId, Long sectionId) {
         try {
             log.info("Get course");
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get section");
@@ -58,7 +68,7 @@ public class MaterialService {
     public Material getMaterial(Long courseId, Long sectionId, Long id) {
         try {
             log.info("Get course");
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get section");
@@ -81,7 +91,7 @@ public class MaterialService {
     public Material postMaterial(MaterialDto request) {
         try {
             log.info("Get course");
-            courseRepository.searchById(request.getCourseId())
+            courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get section");
@@ -99,6 +109,26 @@ public class MaterialService {
             material.setUrl(request.getUrl());
 
             materialRepository.save(material);
+
+            log.info("Update material report and progress");
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourse(request.getCourseId());            
+
+            Integer totalMaterial = materialRepository.countMaterial(request.getCourseId()).size();
+            
+            courseTakens.forEach(courseTake -> {
+                log.info("Add new report");
+                Report report = new Report();
+                report.setCourseTaken(courseTake);
+                report.setMaterial(material);
+                reportRepository.save(report);
+
+                log.info("Update progress course taken");
+                Integer completedCourse = reportRepository.findByCompleted(courseTake.getId()).size();
+                Integer progress = (completedCourse*100)/totalMaterial;
+                courseTake.setProgress(progress);
+                courseTakenRepository.save(courseTake);
+            });
+
             return material;
         } catch (Exception e) {
             log.error("Post material error");
@@ -109,7 +139,7 @@ public class MaterialService {
     public Material updateMaterial(Long id, MaterialDto request) {
         try {
             log.info("Get course");
-            courseRepository.searchById(request.getCourseId())
+            courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get section");
@@ -143,7 +173,7 @@ public class MaterialService {
     public void deleteMaterial(Long courseId, Long sectionId, Long id) {
         try {
             log.info("Get course");
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get section");
@@ -157,6 +187,19 @@ public class MaterialService {
             );
 
             materialRepository.deleteById(id);
+
+            log.info("Update material progress");
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourse(courseId);            
+
+            Integer totalMaterial = materialRepository.countMaterial(courseId).size();
+            
+            courseTakens.forEach(courseTake -> {
+                log.info("Update progress course taken");
+                Integer completedCourse = reportRepository.findByCompleted(courseTake.getId()).size();
+                Integer progress = (completedCourse*100)/totalMaterial;
+                courseTake.setProgress(progress);
+                courseTakenRepository.save(courseTake);
+            });
         } catch (Exception e) {
             log.error("Delete material error");
             throw new RuntimeException(e.getMessage(), e);

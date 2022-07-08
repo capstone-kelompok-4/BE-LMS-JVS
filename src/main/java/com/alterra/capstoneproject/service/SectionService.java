@@ -8,10 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Course;
+import com.alterra.capstoneproject.domain.dao.CourseTaken;
 import com.alterra.capstoneproject.domain.dao.Section;
 import com.alterra.capstoneproject.domain.dto.SectionDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
+import com.alterra.capstoneproject.repository.CourseTakenRepository;
 import com.alterra.capstoneproject.repository.MaterialRepository;
+import com.alterra.capstoneproject.repository.ReportRepository;
 import com.alterra.capstoneproject.repository.SectionRepository;
 
 import lombok.AllArgsConstructor;
@@ -31,12 +34,18 @@ public class SectionService {
     private CourseRepository courseRepository;
 
     @Autowired
+    private CourseTakenRepository courseTakenRepository;
+
+    @Autowired
     private MaterialRepository materialRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
 
     public List<Section> getSections(Long courseId) {
         try {
             log.info("Get course");
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get all sections");
@@ -54,7 +63,7 @@ public class SectionService {
     public Section getSection(Long courseId, Long id) {
         try {
             log.info("Get course");
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get section by id");
@@ -71,12 +80,13 @@ public class SectionService {
     public Section postSection(SectionDto request) {
         try {
             log.info("Get course");
-            Course course = courseRepository.searchById(request.getCourseId())
+            Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Post section");
             Section section = new Section();
 
+            section.setNumber(request.getNumber());
             section.setName(request.getName());
             section.setCourseSection(course);
 
@@ -91,7 +101,7 @@ public class SectionService {
     public Section updateSection(Long id, SectionDto request) {
         try {
             log.info("Get course");
-            Course course = courseRepository.searchById(request.getCourseId())
+            Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get section by id");
@@ -100,6 +110,7 @@ public class SectionService {
 
             log.info("Post section");
 
+            section.setNumber(request.getNumber());
             section.setName(request.getName());
             section.setCourseSection(course);
 
@@ -114,7 +125,7 @@ public class SectionService {
     public void deleteSection(Long courseId, Long id) {
         try {
             log.info("Get course id {}", courseId);
-            courseRepository.searchById(courseId)
+            courseRepository.findById(courseId)
                 .orElseThrow(() -> new Exception("COURSE ID " + courseId + " NOT FOUND"));
 
             log.info("Get section by id");
@@ -122,7 +133,28 @@ public class SectionService {
                 .orElseThrow(() -> new Exception("SECTION ID " + id + " WITH COURSE ID " + courseId +" NOT FOUND"));
 
             sectionRepository.deleteById(id);
-            materialRepository.deleteMaterialBySection(id);
+
+            log.info("Update material progress");
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourse(courseId);            
+    
+            Integer totalMaterial = materialRepository.countMaterial(courseId).size();
+
+            if(totalMaterial != 0) {
+                courseTakens.forEach(courseTake -> {
+                    log.info("Update progress course taken {}", totalMaterial);
+                    Integer completedCourse = reportRepository.findByCompleted(courseTake.getId()).size();
+                    Integer progress = (completedCourse*100)/totalMaterial;
+                    courseTake.setProgress(progress);
+                    courseTakenRepository.save(courseTake);
+                });
+            } else {
+                courseTakens.forEach(courseTake -> {
+                    log.info("Update progress course taken total material 0");
+                    courseTake.setProgress(0);
+                    courseTakenRepository.save(courseTake);
+                });
+            }
+                
         } catch (Exception e) {
             log.error("Delete section error");
             throw new RuntimeException(e.getMessage(), e);

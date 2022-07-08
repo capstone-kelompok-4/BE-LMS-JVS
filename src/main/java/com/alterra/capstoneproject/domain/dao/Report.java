@@ -1,17 +1,15 @@
 package com.alterra.capstoneproject.domain.dao;
 
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import com.alterra.capstoneproject.domain.common.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -19,9 +17,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,32 +27,33 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @Entity
-@Table(name = "sections")
+@Table(name = "reports")
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@SQLDelete(sql = "UPDATE sections SET deleted = true WHERE id=?")
+@SQLDelete(sql = "UPDATE reports SET deleted = true WHERE id=?")
 @Where(clause = "deleted = false")
-public class Section extends BaseEntity {
+public class Report extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Builder.Default
+    private Boolean completed = false;
 
-    @Column(name = "number", nullable = false)
-    private Integer number;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<Material> materials;
+    @Builder.Default
+    private Integer score = 0;
 
     @ManyToOne
-    @JoinColumn(name = "course_id", referencedColumnName = "id")
+    @JoinColumn(name = "course_taken_id", referencedColumnName = "id")
     @JsonBackReference
-    private Course courseSection;
+    private CourseTaken courseTaken;
+
+    @ManyToOne
+    @JoinColumn(name = "material_id", referencedColumnName = "id")
+    @JsonManagedReference
+    private Material material;
 
     @JsonIgnore
     @Builder.Default

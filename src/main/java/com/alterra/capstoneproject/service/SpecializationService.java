@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Specialization;
 import com.alterra.capstoneproject.domain.dto.SpecializationDto;
-import com.alterra.capstoneproject.repository.CourseRepository;
 import com.alterra.capstoneproject.repository.SpecializationRepository;
 
 import lombok.AllArgsConstructor;
@@ -24,9 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SpecializationService {
     @Autowired
     private SpecializationRepository specializationRepository;
-
-    @Autowired
-    private CourseRepository courseRepository;
 
     public List<Specialization> getSpecializations() {
         try {
@@ -93,7 +89,6 @@ public class SpecializationService {
                 .orElseThrow(() -> new Exception("SPECIALIZATION ID " + id + " NOT FOUND"));
 
             specializationRepository.deleteById(id);
-            courseRepository.deleteCourseBySpecialization(id);
         } catch (Exception e) {
             log.error("Delete specialization error");
             throw new RuntimeException(e.getMessage(), e);

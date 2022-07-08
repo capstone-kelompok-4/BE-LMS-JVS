@@ -7,8 +7,11 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class SectionDto {
-    private Integer number;
-    private String name;
-    private Long courseId;
+public class AddressDto {
+    private String detailAddress;
+    private String country;
+    private String stateProvince;
+    private String city;
+    private String zipCode;
+    private String email;
 }

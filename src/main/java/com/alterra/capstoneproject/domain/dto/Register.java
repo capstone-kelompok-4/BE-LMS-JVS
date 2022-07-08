@@ -12,8 +12,11 @@ import lombok.Data;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Register {
     private String name;
-    private String email;
-    private String password;
+    private String email;    
+    private String password;    
     private Long specializationId;
+    private String phoneNumber;
+    private String imageUrl;
+    private AddressDto address;
     private List<RoleEnum> roles;
 }

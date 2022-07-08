@@ -12,6 +12,6 @@ import com.alterra.capstoneproject.domain.dao.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
-    @Query(value = "SELECT * FROM users u WHERE username = ?", nativeQuery = true)
+    @Query(value = "SELECT u FROM User u WHERE u.username = ?1")
     User findUsername(String username);
 }
