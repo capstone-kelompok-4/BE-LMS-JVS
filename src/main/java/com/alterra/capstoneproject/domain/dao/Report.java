@@ -43,12 +43,17 @@ public class Report extends BaseEntity {
     private Boolean completed = false;
 
     @Builder.Default
-    private Integer score = 0;
+    private Integer score = 10;
 
     @ManyToOne
     @JoinColumn(name = "course_taken_id", referencedColumnName = "id")
     @JsonBackReference
     private CourseTaken courseTaken;
+
+    @ManyToOne
+    @JoinColumn(name = "section_id", referencedColumnName = "id")
+    @JsonManagedReference
+    private Section sectionReport;
 
     @ManyToOne
     @JoinColumn(name = "material_id", referencedColumnName = "id")

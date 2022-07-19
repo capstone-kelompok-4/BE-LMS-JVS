@@ -53,6 +53,27 @@ public class CourseController {
         }
     }
 
+    @GetMapping(value = "/recommendations")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getCourseByUserSpec(Principal principal) {
+        try {
+            List<Course> courses = courseService.getCourseByUserSpec(principal.getName());
+            return ResponseUtil.build("GET COURSES BY USER SPECIALIZATION", courses, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/search")
+    public ResponseEntity<?> getCourseByName(@RequestParam(value = "q") String name) {
+        try {
+            List<Course> courses = courseService.getCourseByName(name);
+            return ResponseUtil.build("GET COURSES BY COURSE NAME", courses, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postCourse(@RequestBody CourseDto request) {
@@ -81,26 +102,6 @@ public class CourseController {
         try {
             courseService.deleteCourse(id);
             return ResponseUtil.build("COURSE ID " + id + " DELETED", null, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping(value = "/recommendations")
-    public ResponseEntity<?> getCourseByUserSpec(Principal principal) {
-        try {
-            List<Course> courses = courseService.getCourseByUserSpec(principal.getName());
-            return ResponseUtil.build("GET COURSES BY USER SPECIALIZATION", courses, HttpStatus.OK);
-        } catch (Exception e) {
-            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping(value = "/search")
-    public ResponseEntity<?> getCourseByName(@RequestParam(value = "q") String name) {
-        try {
-            List<Course> courses = courseService.getCourseByName(name);
-            return ResponseUtil.build("GET COURSES BY COURSE NAME", courses, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

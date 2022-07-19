@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Address;
 import com.alterra.capstoneproject.domain.dao.Course;
-import com.alterra.capstoneproject.domain.dao.CourseTaken;
 import com.alterra.capstoneproject.domain.dao.Role;
 import com.alterra.capstoneproject.domain.dao.RoleEnum;
 import com.alterra.capstoneproject.domain.dao.Specialization;
@@ -39,9 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final AddressService addressService;
     private final CourseRepository courseRepository;
     private final CourseTakenRepository courseTakenRepository;
-    private final AddressService addressService;
     private final SpecializationRepository specializationRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -55,15 +54,17 @@ public class AuthService {
                 throw new Exception("USER WITH EMAIL " + req.getEmail() + " IS ALREADY EXIST");
             }
 
+            if(req.getPassword().isBlank() || req.getPassword().contains(" ") || req.getPassword().length() < 8) 
+                throw new Exception("INVALID PASSWORD");         
+
             log.info("Post user");
             User user = new User();
 
             user.setName(req.getName());
-            user.setUsername(req.getEmail().toLowerCase());            
+            user.setUsername(req.getEmail().toLowerCase());   
             user.setPassword(passwordEncoder.encode(req.getPassword()));
             user.setImageUrl(req.getImageUrl());
             user.setPhoneNumber(req.getPhoneNumber());
-            log.info("role");
 
             Set<Role> roles = new HashSet<>();
             if(req.getRoles() == null) {
@@ -107,7 +108,7 @@ public class AuthService {
 
             String jwt = jwtTokenProvider.generateToken(authentication);
 
-            User user = userRepository.findUsername(req.getEmail());
+            User user = userRepository.findUsername(req.getEmail().toLowerCase());
 
             user.setLastAccess(LocalDateTime.now());
 
@@ -203,10 +204,14 @@ public class AuthService {
             User user = userRepository.findByUsername(request.getEmail())
                 .orElseThrow(() -> new Exception("USER WITH EMAIL " + request.getEmail() + " NOT FOUND"));
 
-            log.info("Check password");
+            log.info("Check password in database");
             Boolean isMatch = passwordEncoder.matches(request.getCurrentPassword(), user.getPassword());
 
             if(!isMatch) throw new Exception("PASSWORD DID NOT MATCH");
+
+            log.info("Check new password");
+            if(request.getNewPassword().isBlank() || request.getNewPassword().contains(" ") || request.getNewPassword().length() < 8) 
+                throw new Exception("INVALID PASSWORD");    
 
             log.info("Save new password");
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -233,18 +238,20 @@ public class AuthService {
 
             if(check == true) throw new Exception("CAN NOT DELETE ADMIN");
 
-            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByUser(id);
+            log.info("Delete user");
+            userRepository.deleteById(id);
+            
+            log.info("Update rate in course");
+            List<Course> courses = courseRepository.findAll();
 
-            log.info("size {}",courseTakens.size());
-            courseTakens.forEach(take -> {
-                log.info("Get course by id");
-                Course course = courseRepository.searchCourse(take.getCourseTake().getId());
-
+            log.info("courses size {}", courses.size());
+            courses.forEach(course -> {
                 log.info("Save rate course");
                 Integer rateInCourseTaken = courseTakenRepository.countRateByCourse(course.getId());
-
-                if(rateInCourseTaken > 1) {
-                    Double rateCourse = ((course.getRate() * rateInCourseTaken) - take.getRate())/(rateInCourseTaken - 1);
+                
+                if(rateInCourseTaken >= 1) {
+                    Double sumRate = courseTakenRepository.sumRateByCourse(course.getId());
+                    Double rateCourse = sumRate/rateInCourseTaken;
                     course.setRate(rateCourse);
                     courseRepository.save(course);
                 }else {
@@ -252,9 +259,6 @@ public class AuthService {
                     courseRepository.save(course);
                 }
             });
-
-            log.info("Delete user");
-            userRepository.deleteById(id);
         } catch (Exception e) {
             log.error("Delete user error");
             throw new RuntimeException(e.getMessage(), e);

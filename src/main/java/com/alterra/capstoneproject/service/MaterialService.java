@@ -118,6 +118,7 @@ public class MaterialService {
             courseTakens.forEach(courseTake -> {
                 log.info("Add new report");
                 Report report = new Report();
+                report.setSectionReport(section);
                 report.setCourseTaken(courseTake);
                 report.setMaterial(material);
                 reportRepository.save(report);

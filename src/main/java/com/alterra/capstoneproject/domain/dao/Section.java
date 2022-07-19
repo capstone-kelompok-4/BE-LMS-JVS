@@ -54,6 +54,10 @@ public class Section extends BaseEntity {
     @JsonManagedReference
     private List<Material> materials;
 
+    @OneToMany(mappedBy = "sectionReport", cascade = CascadeType.ALL)
+    @JsonBackReference
+    private List<Report> reports;
+
     @ManyToOne
     @JoinColumn(name = "course_id", referencedColumnName = "id")
     @JsonBackReference

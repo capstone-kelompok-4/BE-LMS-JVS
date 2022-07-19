@@ -28,7 +28,7 @@ public class UserController {
     public ResponseEntity<?> register (@RequestBody Register req) {
         try {
             User user = authService.register(req);
-            return ResponseUtil.build("USER CREATED", user, HttpStatus.CREATED);
+            return ResponseUtil.build("USER CREATED", user, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -38,7 +38,7 @@ public class UserController {
     public ResponseEntity<?> generateToken(@RequestBody Login req) {
         try {
             TokenResponse token = authService.generateToken(req);        
-            return ResponseUtil.build("TOKEN CREATED", token, HttpStatus.CREATED);
+            return ResponseUtil.build("TOKEN CREATED", token, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

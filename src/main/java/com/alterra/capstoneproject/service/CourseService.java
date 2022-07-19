@@ -1,8 +1,6 @@
 package com.alterra.capstoneproject.service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -10,12 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alterra.capstoneproject.domain.dao.Course;
-import com.alterra.capstoneproject.domain.dao.MethodologyLearning;
 import com.alterra.capstoneproject.domain.dao.Specialization;
 import com.alterra.capstoneproject.domain.dao.User;
 import com.alterra.capstoneproject.domain.dto.CourseDto;
 import com.alterra.capstoneproject.repository.CourseRepository;
-import com.alterra.capstoneproject.repository.MethodologyRepository;
 import com.alterra.capstoneproject.repository.SpecializationRepository;
 import com.alterra.capstoneproject.repository.UserRepository;
 
@@ -37,9 +33,6 @@ public class CourseService {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private MethodologyRepository methodologyRepository;
     
     public List<Course> getCourses() {
         try {
@@ -83,15 +76,7 @@ public class CourseService {
             course.setTargetLearner(request.getTargetLearner());
             course.setObjectiveLearner(request.getObjectiveLearner());
             course.setCourseSpecialization(spec);
-
-            log.info("methodology");
-            Set<MethodologyLearning> methodologyLearnings = new HashSet<>();
-            request.getMethodologyLearnings().forEach(inputMethodology -> {
-                MethodologyLearning method = methodologyRepository.findByName(inputMethodology)
-                    .orElseThrow(() -> new RuntimeException("METHODOLOGY NOT FOUND"));
-                methodologyLearnings.add(method);
-            });
-            course.setMethodologyLearnings(methodologyLearnings);
+            course.setMethodologyLearnings(request.getMethodologyLearnings());
 
             courseRepository.save(course);
             return course;
@@ -119,14 +104,7 @@ public class CourseService {
             course.setTargetLearner(request.getTargetLearner());
             course.setObjectiveLearner(request.getObjectiveLearner());
             course.setCourseSpecialization(spec);
-
-            Set<MethodologyLearning> methodologyLearnings = new HashSet<>();
-            request.getMethodologyLearnings().forEach(inputMethodology -> {
-                MethodologyLearning method = methodologyRepository.findByName(inputMethodology)
-                    .orElseThrow(() -> new RuntimeException("METHODOLOGY NOT FOUND"));
-                methodologyLearnings.add(method);
-            });
-            course.setMethodologyLearnings(methodologyLearnings);
+            course.setMethodologyLearnings(request.getMethodologyLearnings());
 
             courseRepository.save(course);
             return course;

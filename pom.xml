@@ -82,8 +82,20 @@
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>8.0.0.CR1</version>
+			<version>6.2.0.Final</version>
 		</dependency>	
+		
+		<dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>4.2.2</version>
+        </dependency>	
+		<dependency>
+			<groupId>org.jeasy</groupId>
+			<artifactId>easy-random-core</artifactId>
+			<version>5.0.0</version>
+			<scope>test</scope>
+		</dependency>		
 	</dependencies>
 
 	<build>
@@ -100,6 +112,60 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.2</version>
+				<configuration>
+					<excludes>
+						<exclude>**/config/*.class</exclude>
+						<exclude>**/controller/*.class</exclude>
+						<exclude>**/domain/**/*.class</exclude>
+						<exclude>**/repository/*.class</exclude>
+						<exclude>**/security/*.class</exclude>
+						<exclude>**/service/UserDetailsImpl.class</exclude>
+						<exclude>**/util/*.class</exclude>
+						<exclude>**/Application.class</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+				   <execution>
+					  <id>lombok-config</id>
+					  <phase>initialize</phase>
+					  <goals>
+						 <goal>run</goal>
+					  </goals>
+					  <configuration>
+						 <target>
+							<propertyfile file="lombok.config">
+							   <entry key="config.stopBubbling" value="true" />
+							   <entry key="lombok.addLombokGeneratedAnnotation" value="true" />
+							</propertyfile>
+						 </target>
+					  </configuration>
+					  <?m2e execute?> <!-- Optional: enable this execution in Eclipse -->
+				   </execution>
+				</executions>
+			 </plugin>
 		</plugins>
 	</build>
 

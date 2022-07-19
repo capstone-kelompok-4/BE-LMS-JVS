@@ -139,6 +139,7 @@ public class SectionService {
     
             Integer totalMaterial = materialRepository.countMaterial(courseId).size();
 
+            log.info("Total material {}", totalMaterial);
             if(totalMaterial != 0) {
                 courseTakens.forEach(courseTake -> {
                     log.info("Update progress course taken {}", totalMaterial);
@@ -148,6 +149,7 @@ public class SectionService {
                     courseTakenRepository.save(courseTake);
                 });
             } else {
+                log.info("Course taken {}", courseTakens.size());
                 courseTakens.forEach(courseTake -> {
                     log.info("Update progress course taken total material 0");
                     courseTake.setProgress(0);

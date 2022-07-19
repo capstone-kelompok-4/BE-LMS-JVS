@@ -1,20 +1,16 @@
 package com.alterra.capstoneproject.domain.dao;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -26,8 +22,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -75,16 +69,11 @@ public class Course extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private List<String> objectiveLearner;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "course_methodologies",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "methodology_id")
-    )
-    private Set<MethodologyLearning> methodologyLearnings;
+    @ElementCollection
+    @CollectionTable(name="methodology_learnings")
+    private List<MethodologyEnum> methodologyLearnings;
 
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "specialization_id", referencedColumnName = "id", nullable = false)
     @JsonManagedReference
     private Specialization courseSpecialization;

@@ -15,4 +15,5 @@ public class CourseTakenDto {
     private RequestEnum requestType;
     private String requestDetail;
     private Integer score;
+    private String certificateCode;
 }

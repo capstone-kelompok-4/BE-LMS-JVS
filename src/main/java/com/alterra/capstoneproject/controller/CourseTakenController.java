@@ -1,10 +1,15 @@
 package com.alterra.capstoneproject.controller;
 
+import java.io.ByteArrayInputStream;
 import java.security.Principal;
 import java.util.List;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,10 +23,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alterra.capstoneproject.domain.dao.CourseTaken;
+import com.alterra.capstoneproject.domain.dao.StatusEnum;
 import com.alterra.capstoneproject.domain.dto.CourseTakenDto;
 import com.alterra.capstoneproject.domain.dto.RateCourse;
 import com.alterra.capstoneproject.domain.dto.StatusCourse;
 import com.alterra.capstoneproject.service.CourseTakenService;
+import com.alterra.capstoneproject.util.Certificate;
+import com.alterra.capstoneproject.util.DataReport;
 import com.alterra.capstoneproject.util.ResponseUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -46,10 +54,9 @@ public class CourseTakenController {
     }
 
     @GetMapping(value = "/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getCourseTaken(@PathVariable Long id) {
+    public ResponseEntity<?> getCourseTaken(@PathVariable Long id, Principal principal) {
         try {
-            CourseTaken courseTaken = courseTakenService.getCourseTaken(id); 
+            CourseTaken courseTaken = courseTakenService.getCourseTaken(id, principal.getName()); 
             return ResponseUtil.build("GET COURSE TAKEN ID " + id, courseTaken, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -77,11 +84,61 @@ public class CourseTakenController {
         }
     }
 
+    @GetMapping(value = "/download-reports/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> getReports(@PathVariable Long id, Principal principal) {    
+        try {
+            CourseTaken courseTaken = courseTakenService.getCourseTaken(id, principal.getName());
+            ByteArrayInputStream bis = DataReport.courseReport(courseTaken);
+
+            var headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=course-report.pdf");
+            
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/download-certificates", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getCertificatesByUser(@RequestBody CourseTakenDto request, Principal principal) {
+        try {
+            CourseTaken courseTaken = courseTakenService.getCourseTakenByCertificateCode(request.getCertificateCode(), principal.getName());
+            ByteArrayInputStream bis = Certificate.getCertificate(courseTaken);
+
+            var headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=course-certificate.pdf");
+            
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/download-certificates/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<?> getCertificates(@PathVariable(value = "id") Long id, Principal principal) {
+        try {
+            CourseTaken courseTaken = courseTakenService.getCourseTaken(id, principal.getName());
+            if(courseTaken.getStatus() != StatusEnum.ACCEPTED)
+                throw new Exception("COURSE TAKEN ID " + courseTaken.getId() + " IS NOT YET ACCEPTED");
+
+            ByteArrayInputStream bis = Certificate.getCertificate(courseTaken);
+
+            var headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=course-certificate.pdf");
+            
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> postCourseTaken(Principal principal, @RequestBody CourseTakenDto request) {
         try {
             request.setEmail(principal.getName());
+            request.setCertificateCode(randomCode());
             CourseTaken courseTaken = courseTakenService.postCourseTaken(request); 
             return ResponseUtil.build("COURSE TAKEN CREATED", courseTaken, HttpStatus.OK);
         } catch (Exception e) {
@@ -91,9 +148,10 @@ public class CourseTakenController {
 
     @PutMapping(value = "/update-status/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(Principal principal, @PathVariable Long id, @RequestBody StatusCourse request) {
+    public ResponseEntity<?> updateStatus(@PathVariable Long id, @RequestBody StatusCourse request) {
         try {
-            CourseTaken courseTakens = courseTakenService.updateStatus(id, request.getStatus());
+            request.setCertificateCode(randomCode());
+            CourseTaken courseTakens = courseTakenService.updateStatus(id, request);
             return ResponseUtil.build("UPDATE COURSE TAKEN STATUS", courseTakens, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -145,5 +203,16 @@ public class CourseTakenController {
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public String randomCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder code = new StringBuilder();
+        Random rnd = new Random();
+        while (code.length() < 8) { 
+            int index = (int) (rnd.nextFloat() * chars.length());
+            code.append(chars.charAt(index));
+        }
+        return code.toString();
     }
 }

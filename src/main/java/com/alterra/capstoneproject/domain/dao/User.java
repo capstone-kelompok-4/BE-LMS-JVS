@@ -20,6 +20,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
@@ -53,18 +55,20 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @NotBlank
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username")
     @Email(message = "EMAIL IS NOT VALID")
     private String username;
-    
+
     @Column(name = "password", nullable = false)
     @JsonIgnore
     private String password;
-    
-    @Column(name = "phone_number")
+
+    @Pattern(regexp = "^[0-9]{10,15}$")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Column(name = "image_url")

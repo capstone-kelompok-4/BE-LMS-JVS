@@ -3,7 +3,6 @@ package com.alterra.capstoneproject;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,14 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.alterra.capstoneproject.domain.dao.MethodologyEnum;
-import com.alterra.capstoneproject.domain.dao.MethodologyLearning;
 import com.alterra.capstoneproject.domain.dao.Role;
 import com.alterra.capstoneproject.domain.dao.RoleEnum;
 import com.alterra.capstoneproject.domain.dao.User;
 import com.alterra.capstoneproject.domain.dto.AddressDto;
 import com.alterra.capstoneproject.domain.dto.Register;
-import com.alterra.capstoneproject.repository.MethodologyRepository;
 import com.alterra.capstoneproject.repository.RoleRepository;
 import com.alterra.capstoneproject.repository.UserRepository;
 import com.alterra.capstoneproject.service.AuthService;
@@ -33,9 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Application {
 	@Autowired
 	private RoleRepository roleRepository;
-
-	@Autowired
-	private MethodologyRepository methodologyRepository;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -62,11 +55,19 @@ public class Application {
 				log.info("Set admin");
 				List<RoleEnum> roles = new ArrayList<>();
 				AddressDto address = new AddressDto();
+
+				address.setDetailAddress("126 Melrose Ave");
+				address.setCountry("United States of America");
+				address.setStateProvince("California");
+				address.setCity("Monrovia");
+				address.setZipCode("91016");
+				
 				Register register = new Register();
 
 				register.setName("admin");
 				register.setEmail("admin@gmail.com");
 				register.setPassword("admin_123");
+				register.setPhoneNumber("6263036108");
 				roles.add(RoleEnum.ROLE_ADMIN);
 				register.setRoles(roles);
 				register.setAddress(address);
@@ -75,21 +76,6 @@ public class Application {
 			}
 		};
 	}
-
-	@Bean
-	InitializingBean sendDatabase() {
-    return () -> {
-		List<MethodologyLearning> checkMathodologies = methodologyRepository.findAll();
-		if(checkMathodologies.isEmpty()) {
-			log.info("Set methodology learnings");
-			for(MethodologyEnum methodEnum : MethodologyEnum.values()) {
-				MethodologyLearning method = new MethodologyLearning();
-				method.setName(methodEnum);
-				methodologyRepository.save(method);
-			}
-		}
-      };	  
-   }
 
    @Bean
 	public WebMvcConfigurer corsConfigurer() {

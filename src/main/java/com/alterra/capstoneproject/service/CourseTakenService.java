@@ -18,10 +18,10 @@ import com.alterra.capstoneproject.domain.dao.StatusEnum;
 import com.alterra.capstoneproject.domain.dao.User;
 import com.alterra.capstoneproject.domain.dto.CourseTakenDto;
 import com.alterra.capstoneproject.domain.dto.RateCourse;
+import com.alterra.capstoneproject.domain.dto.StatusCourse;
 import com.alterra.capstoneproject.repository.CourseRepository;
 import com.alterra.capstoneproject.repository.CourseTakenRepository;
 import com.alterra.capstoneproject.repository.ReportRepository;
-import com.alterra.capstoneproject.repository.SectionRepository;
 import com.alterra.capstoneproject.repository.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -44,9 +44,6 @@ public class CourseTakenService {
     private UserRepository userRepository;
 
     @Autowired
-    private SectionRepository sectionRepository;
-
-    @Autowired
     private ReportRepository reportRepository;
 
     @Autowired
@@ -55,6 +52,7 @@ public class CourseTakenService {
     private Material material;
     private Boolean check, checkAdmin;
     private Integer totalMaterial;
+    private String message;
 
     public List<CourseTaken> getCourseTakens() {
         try {
@@ -70,11 +68,15 @@ public class CourseTakenService {
         }
     }
 
-    public CourseTaken getCourseTaken(Long id) {
+    public CourseTaken getCourseTaken(Long id, String username) {
         try {
             log.info("Get course taken by id");
             CourseTaken courseTaken = courseTakenRepository.findById(id)
                 .orElseThrow(() -> new Exception("COURSE TAKEN ID " + id + " NOT FOUND"));
+
+            if(username.equals(courseTaken.getUser().getUsername())) {
+                courseTaken.setLastAccessCourse(LocalDateTime.now());
+            }
 
             return courseTaken;
         } catch (Exception e) {
@@ -85,13 +87,26 @@ public class CourseTakenService {
 
     public CourseTaken postCourseTaken(CourseTakenDto request) {
         try {
+            message = "";
             log.info("Get course");
             Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new Exception("COURSE ID " + request.getCourseId() + " NOT FOUND"));
 
             log.info("Get user");
-            User user = userRepository.findByUsername(request.getEmail())
-                .orElseThrow(() -> new Exception("EMAIL " + request.getEmail() + " NOT FOUND"));
+            User user = userRepository.findUsername(request.getEmail());
+
+            log.info("Check course taken");
+            List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourseUser(request.getCourseId(), user.getId());
+
+            if(!courseTakens.isEmpty()) {
+                courseTakens.forEach(courseTake -> {
+                    if(courseTake.getRequestType().equals(request.getRequestType())) {
+                        message = request.getRequestType() + " " + courseTake.getCourseTake().getName() + " IS ALREADY TAKEN BY USER " + request.getEmail();
+                    }
+                });
+            }
+
+            if(!message.isBlank()) throw new Exception(message);
 
             log.info("Post course taken");
             CourseTaken courseTaken = new CourseTaken();
@@ -104,12 +119,13 @@ public class CourseTakenService {
                 courseTaken.setTakenAt(LocalDateTime.now());
                 courseTaken.setStatus(StatusEnum.ACCEPTED);
                 courseTaken.setRequestDetail("SAME SPECIALIZATION");
+                courseTaken.setCertificateCode(request.getCertificateCode().toUpperCase());
+
+                log.info("Add report");
+                reportService.postReport(courseTaken);
             }
 
             courseTakenRepository.save(courseTaken);
-
-            log.info("Add report");
-            reportService.postReport(courseTaken);
            
             return courseTaken;
         } catch (Exception e) {
@@ -120,10 +136,30 @@ public class CourseTakenService {
 
     public void deleteCourseTaken(Long id) {
         try {
-            courseTakenRepository.findById(id)
+            CourseTaken courseTaken = courseTakenRepository.findById(id)
                 .orElseThrow(() -> new Exception("COURSE TAKEN ID " + id + " NOT FOUND"));
 
             courseTakenRepository.deleteById(id);
+
+            log.info("Update rate in course");
+
+            log.info("Get course by id");
+            Course course = courseRepository.findById(courseTaken.getCourseTake().getId())
+                .orElseThrow(() -> new Exception("COURSE ID " + courseTaken.getCourseTake().getId() + " NOT FOUND"));
+
+
+            log.info("Save rate course");
+            Integer rateInCourseTaken = courseTakenRepository.countRateByCourse(course.getId());
+            
+            if(rateInCourseTaken >= 1) {
+                Double sumRate = courseTakenRepository.sumRateByCourse(course.getId());
+                Double rateCourse = sumRate/rateInCourseTaken;
+                course.setRate(rateCourse);
+                courseRepository.save(course);
+            }else {
+                course.setRate(0.0);
+                courseRepository.save(course);
+            }
         } catch (Exception e) {
             log.error("Delete course taken error");
             throw new RuntimeException(e.getMessage(), e);
@@ -153,6 +189,8 @@ public class CourseTakenService {
                 .orElseThrow(() -> new Exception("COURSE ID " + id + " NOT FOUND"));
 
             List<CourseTaken> courseTakens = courseTakenRepository.findCourseTakenByCourse(id);
+
+            if(courseTakens.isEmpty()) throw new Exception("COURSE TAKEN BY COURSE " + id + " IS EMPTY");
 
             return courseTakens;
         } catch (Exception e) {
@@ -189,7 +227,7 @@ public class CourseTakenService {
 
             log.info("Save rate course");
             Integer rateInCourseTaken = courseTakenRepository.countRateByCourse(course.getId());
-            
+
             if(rateInCourseTaken > 1) {
                 Double sumRate = courseTakenRepository.sumRateByCourse(course.getId());
                 Double rateCourse = sumRate/rateInCourseTaken;
@@ -232,7 +270,7 @@ public class CourseTakenService {
             }
 
             log.info("Get section course by course taken");
-            List<Section> sections = sectionRepository.searchAll(courseTaken.getCourseTake().getId());
+            List<Section> sections = courseTaken.getCourseTake().getSections();
 
             sections.forEach(checkSection -> {
                 List<Material> materials = checkSection.getMaterials();
@@ -245,6 +283,7 @@ public class CourseTakenService {
                 });
             });
 
+            log.info("check {}", check);
             if(!check || material.getDeleted() == true) 
                 throw new Exception("MATERIAL ID " + request.getMaterialId() + " NOT FOUND");
 
@@ -278,26 +317,53 @@ public class CourseTakenService {
         }
     }
 
-    public CourseTaken updateStatus(Long id, StatusEnum status) {
+    public CourseTaken updateStatus(Long id, StatusCourse request) {
         try {
             log.info("Get course taken by id");
             CourseTaken courseTaken = courseTakenRepository.findById(id)
                 .orElseThrow(() -> new Exception("COURSE TAKEN ID " + id + " NOT FOUND"));
 
             if(courseTaken.getStatus() != StatusEnum.PENDING)
-                throw new Exception("COURSE TAKEN ID " + id +" IS ALREADY " + courseTaken.getStatus());
+                throw new Exception("COURSE TAKEN ID " + id + " IS ALREADY " + courseTaken.getStatus());
+
+            if(request.getStatus() == StatusEnum.PENDING) 
+                throw new Exception("CAN NOT UPDATE STATUS OF COURSE TAKEN ID " + id);
 
             log.info("Update status course taken");
             
-            courseTaken.setStatus(status);
-            if(status == StatusEnum.ACCEPTED) {
+            courseTaken.setStatus(request.getStatus());
+
+            log.info("Check if status request is accepted");
+            if(request.getStatus() == StatusEnum.ACCEPTED) {
                 courseTaken.setTakenAt(LocalDateTime.now());
-            }
+                courseTaken.setCertificateCode(request.getCertificateCode().toUpperCase());
+
+                log.info("Add report");
+                reportService.postReport(courseTaken);
+            } 
             courseTakenRepository.save(courseTaken);
 
             return courseTaken;
         } catch (Exception e) {
             log.error("Update status course taken error");
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public CourseTaken getCourseTakenByCertificateCode(String code, String username) {
+        try {
+            log.info("Get course taken certificate by certificate code");
+            CourseTaken courseTaken = courseTakenRepository.findCourseTakenByCertificateCode(code.toUpperCase())
+                .orElseThrow(() -> new Exception("CERTIFICATE CODE " + code + " IS NOT FOUND"));
+
+            log.info("Check username with the certificate");
+            if(!username.equals(courseTaken.getUser().getUsername())) {
+                throw new Exception("CERTIFICATE CODE IS NOT VALID FOR USER " + username);
+            }
+
+            return courseTaken;
+        } catch (Exception e) {
+            log.error("Get course taken by certificate code error");
             throw new RuntimeException(e.getMessage(), e);
         }
     }

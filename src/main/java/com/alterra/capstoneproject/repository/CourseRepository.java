@@ -16,7 +16,4 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @Query("SELECT c FROM Course c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :name,'%'))")
     List<Course> findByName(@Param("name") String name);
-
-    @Query(value = "SELECT c from Course c WHERE c.id = ?1")
-    Course searchCourse(Long id);
 }

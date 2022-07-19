@@ -47,6 +47,9 @@ public class CourseTaken extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "certificate_code")
+    private String certificateCode;
+
     @Column(name = "progress")
     @Builder.Default
     private Integer progress = 0;
@@ -68,6 +71,10 @@ public class CourseTaken extends BaseEntity {
     @Column(name = "taken_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime takenAt;
+
+    @Column(name = "last_access_course")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastAccessCourse;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
