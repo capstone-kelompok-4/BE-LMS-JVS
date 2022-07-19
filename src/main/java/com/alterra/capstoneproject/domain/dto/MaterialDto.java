@@ -1,7 +1,6 @@
 package com.alterra.capstoneproject.domain.dto;
 
-import javax.persistence.Column;
-
+import com.alterra.capstoneproject.domain.dao.TypeEnum;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -10,12 +9,9 @@ import lombok.Data;
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MaterialDto {
-    @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
-    private String type;
-    @Column(nullable = false)
+    private TypeEnum type;
     private String url;
-    @Column(nullable = false)
+    private Long courseId;
     private Long sectionId;
 }

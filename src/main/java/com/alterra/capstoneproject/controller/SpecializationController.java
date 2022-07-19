@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,11 +26,13 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/specializations")
+@CrossOrigin(origins = "https://capstone-project-4.herokuapp.com")
 public class SpecializationController {
     @Autowired
     private SpecializationService specializationService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getSpecializations() {
         try {
             List<Specialization> specializations = specializationService.getSpecializations();
@@ -39,6 +43,7 @@ public class SpecializationController {
     }
 
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getSpecialization(@PathVariable Long id) {
         try {
             Specialization specialization = specializationService.getSpecialization(id); 
@@ -49,6 +54,7 @@ public class SpecializationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postSpecialization(@RequestBody SpecializationDto request) {
         try {
             Specialization specialization = specializationService.postSpecialization(request); 
@@ -59,6 +65,7 @@ public class SpecializationController {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateSpecialization(@PathVariable Long id, @RequestBody SpecializationDto request) {
         try {
             Specialization specialization = specializationService.updateSpecialization(id, request); 
@@ -69,6 +76,7 @@ public class SpecializationController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteSpecialization(@PathVariable Long id) {
         try {
             specializationService.deleteSpecialization(id);

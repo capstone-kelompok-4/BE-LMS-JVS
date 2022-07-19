@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,14 +26,15 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/courses/{cid}/sections")
+@CrossOrigin(origins = "https://capstone-project-4.herokuapp.com")
 public class SectionController {
     @Autowired
     private SectionService sectionService;
 
     @GetMapping
-    public ResponseEntity<?> getSections() {
+    public ResponseEntity<?> getSections(@PathVariable(value = "cid") Long courseId) {
         try {
-            List<Section> sections = sectionService.getSections();
+            List<Section> sections = sectionService.getSections(courseId);
             return ResponseUtil.build("GET SECTIONS", sections, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -39,9 +42,9 @@ public class SectionController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<?> getSection(@PathVariable Long id) {
+    public ResponseEntity<?> getSection(@PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id) {
         try {
-            Section section = sectionService.getSection(id); 
+            Section section = sectionService.getSection(courseId, id); 
             return ResponseUtil.build("GET SECTION ID " + id, section, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -49,6 +52,7 @@ public class SectionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> postSection(@PathVariable(value = "cid") Long courseId, @RequestBody SectionDto request) {
         try {
             request.setCourseId(courseId);
@@ -60,7 +64,10 @@ public class SectionController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<?> updateSection(@PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id, @RequestBody SectionDto request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateSection(
+        @PathVariable(value = "cid") Long courseId, @PathVariable(value = "id") Long id, @RequestBody SectionDto request) 
+    {
         try {
             request.setCourseId(courseId);
             Section section = sectionService.updateSection(id, request); 
@@ -71,9 +78,10 @@ public class SectionController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteSection(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSection(@PathVariable(value = "cid") Long courseId, @PathVariable Long id) {
         try {
-            sectionService.deleteSection(id);
+            sectionService.deleteSection(courseId, id);
             return ResponseUtil.build("SECTION ID " + id + " DELETED", null, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseUtil.build(e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);

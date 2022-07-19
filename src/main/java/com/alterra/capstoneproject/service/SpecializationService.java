@@ -29,6 +29,8 @@ public class SpecializationService {
             log.info("Get all specialization");
             List<Specialization> specializations = specializationRepository.findAll();
 
+            if(specializations.isEmpty()) throw new Exception("SPECIALIZATION IS EMPTY");
+
             return specializations;
         } catch (Exception e) {
             log.error("Get all specialization error");
@@ -83,10 +85,13 @@ public class SpecializationService {
 
     public void deleteSpecialization(Long id) {
         try {
+            specializationRepository.findById(id)
+                .orElseThrow(() -> new Exception("SPECIALIZATION ID " + id + " NOT FOUND"));
+
             specializationRepository.deleteById(id);
         } catch (Exception e) {
             log.error("Delete specialization error");
-            throw new RuntimeException("SPECIALIZATION ID " + id + " NOT FOUND");
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

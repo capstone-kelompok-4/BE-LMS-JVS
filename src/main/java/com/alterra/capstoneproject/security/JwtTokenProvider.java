@@ -1,15 +1,12 @@
 package com.alterra.capstoneproject.security;
 
 import java.security.Key;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.alterra.capstoneproject.domain.dao.User;
+import com.alterra.capstoneproject.service.UserDetailsImpl;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -21,16 +18,10 @@ public class JwtTokenProvider {
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     public String generateToken(Authentication auth) {
-        final User user = (User) auth.getPrincipal();
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", user.getId());
-        claims.put("username", user.getUsername());
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
 
         return Jwts.builder()
-            .setId(user.getId().toString())
             .setSubject(user.getUsername())
-            .setClaims(claims)
             .signWith(key)
             .compact();
     }
@@ -45,13 +36,7 @@ public class JwtTokenProvider {
         }
     }
 
-    public Long getId(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return (Long) claims.get("id");
-    }
-
     public String getUsername(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return claims.get("username").toString();
+       return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
     }
 }
